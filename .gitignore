@@ -1,1 +1,5 @@
 tools/
+*.cmp
+*.out
+*.tst
+*.txt
