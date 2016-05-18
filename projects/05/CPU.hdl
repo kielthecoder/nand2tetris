@@ -66,28 +66,37 @@ CHIP CPU {
     Not(in=ZR, out=NZ);
     Not(in=NG, out=PO);
 
+    // jump bits in C-instruction
     DMux8Way(in=isC, sel=instruction[0..2], a=NOP, b=JGT, c=JEQ, d=JGE, e=JLT, f=JNE, g=JLE, h=JMP);
 
+    // JGT
     And(a=JGT, b=PO, out=JGT1);
     And(a=JGT1, b=NZ, out=JMP1);
 
+    // JEQ
     And(a=JEQ, b=ZR, out=JMP2);
 
+    // JGE
     And(a=JGE, b=PO, out=JGT2);
     And(a=JGE, b=ZR, out=JGT3);
     Or(a=JGT2, b=JGT3, out=JMP3);
 
+    // JLT
     And(a=JLT, b=NG, out=JLT1);
     And(a=JLT1, b=NZ, out=JMP4);
 
+    // JNE
     And(a=JNE, b=NZ, out=JMP5);
 
+    // JLE
     And(a=JLE, b=NG, out=JLT2);
     And(a=JLE, b=ZR, out=JLT3);
     Or(a=JLT2, b=JLT3, out=JMP6);
 
+    // JMP
     And(a=JMP, b=true, out=JMP7);
 
+    // Any jump causes PC to be loaded, otherwise increment
     Or8Way(in[0]=JMP1, in[1]=JMP2, in[2]=JMP3, in[3]=JMP4, in[4]=JMP5, in[5]=JMP6, in[6]=JMP7, in[7]=false, out=LPC);
     Not(in=LPC, out=IPC);
 }
