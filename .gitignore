@@ -1,5 +1,6 @@
 tools/
 *.cmp
+*.hack
 *.out
 *.tst
 *.txt
