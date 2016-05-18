@@ -66,14 +66,28 @@ CHIP CPU {
     Not(in=ZR, out=NZ);
     Not(in=NG, out=PO);
 
-    And(a=isC, b=instruction[0], out=JGT);
-    And(a=isC, b=instruction[1], out=JEQ);
-    And(a=isC, b=instruction[2], out=JLT);
+    DMux8Way(in=isC, sel=instruction[0..2], a=NOP, b=JGT, c=JEQ, d=JGE, e=JLT, f=JNE, g=JLE, h=JMP);
 
-    And(a=JGT, b=PO, out=JMP1);
+    And(a=JGT, b=PO, out=JGT1);
+    And(a=JGT1, b=NZ, out=JMP1);
+
     And(a=JEQ, b=ZR, out=JMP2);
-    And(a=JLT, b=NG, out=JMP3);
 
-    Or8Way(in[0]=JMP1, in[1]=JMP2, in[2]=JMP3, in[3]=JMP4, in[4..7]=false, out=LPC);
+    And(a=JGE, b=PO, out=JGT2);
+    And(a=JGE, b=ZR, out=JGT3);
+    Or(a=JGT2, b=JGT3, out=JMP3);
+
+    And(a=JLT, b=NG, out=JLT1);
+    And(a=JLT1, b=NZ, out=JMP4);
+
+    And(a=JNE, b=NZ, out=JMP5);
+
+    And(a=JLE, b=NG, out=JLT2);
+    And(a=JLE, b=ZR, out=JLT3);
+    Or(a=JLT2, b=JLT3, out=JMP6);
+
+    And(a=JMP, b=true, out=JMP7);
+
+    Or8Way(in[0]=JMP1, in[1]=JMP2, in[2]=JMP3, in[3]=JMP4, in[4]=JMP5, in[5]=JMP6, in[6]=JMP7, in[7]=false, out=LPC);
     Not(in=LPC, out=IPC);
 }
