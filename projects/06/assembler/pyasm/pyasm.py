@@ -1,4 +1,3 @@
-import os.path
 import sys
 
 class Parser:
@@ -169,44 +168,55 @@ class SymbolTable:
     def address(self, symb):
         return self.symbols[symb]
 
-if __name__ == "__main__":
-    for arg in sys.argv[1:]:
-        in_name = arg
-        out_name = arg.replace(".asm", ".hack")
+class Assembler:
+    def __init__(self):
+        self.p = None
+        self.c = None
+        self.s = None
+        
+    def run(self, fname):
+        in_name = fname
+        out_name = fname.replace(".asm", ".hack")
         print("Assembling %s -> %s..." % (in_name, out_name))
         with open(out_name, "wt") as outfd:
-            p = Parser()
-            c = Code()
-            s = SymbolTable()
+            self.p = Parser()
+            self.c = Code()
+            self.s = SymbolTable()
             print("   First pass...")
             pc = 0
             with open(in_name, "rt") as infd:
                 for text in infd:
-                    p.advance(text)
-                    if p.command_type:
-                        if p.command_type == p.A_COMMAND:
+                    self.p.advance(text)
+                    if self.p.command_type:
+                        if self.p.command_type == self.p.A_COMMAND:
                             pc = pc + 1
-                        elif p.command_type == p.L_COMMAND:
-                            s.add(p.symbol(), pc)
-                        elif p.command_type == p.C_COMMAND:
+                        elif self.p.command_type == self.p.L_COMMAND:
+                            self.s.add(self.p.symbol(), pc)
+                        elif self.p.command_type == self.p.C_COMMAND:
                             pc = pc + 1
             print("   Second pass...")
             var = 16
             with open(in_name, "rt") as infd:
                 for text in infd:
-                    p.advance(text)
-                    if p.command_type:
-                        if p.command_type == p.A_COMMAND:
+                    self.p.advance(text)
+                    if self.p.command_type:
+                        if self.p.command_type == self.p.A_COMMAND:
                             try:
-                                addr = int(p.symbol())
+                                addr = int(self.p.symbol())
                             except ValueError:
-                                if (s.contains(p.symbol())):
-                                    addr = int(s.address(p.symbol()))
+                                if (self.s.contains(self.p.symbol())):
+                                    addr = int(self.s.address(self.p.symbol()))
                                 else:
                                     addr = var
                                     var = var + 1
-                                    s.add(p.symbol(), addr)
+                                    self.s.add(self.p.symbol(), addr)
                             outfd.write("0{:015b}\n".format(addr))
-                        elif p.command_type == p.C_COMMAND:
-                            outfd.write("111%s%s%s\n" % (c.comp(p.comp()), c.dest(p.dest()), c.jump(p.jump())))
+                        elif self.p.command_type == self.p.C_COMMAND:
+                            outfd.write("111%s%s%s\n" % (self.c.comp(self.p.comp()), self.c.dest(self.p.dest()), self.c.jump(self.p.jump())))
         print("   Done!")
+        
+
+if __name__ == "__main__":
+    asm = Assembler()
+    for arg in sys.argv[1:]:
+        asm.run(arg)
